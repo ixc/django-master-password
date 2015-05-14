@@ -6,8 +6,8 @@ Please follow these guidelines when making contributions to this app.
 
 Get the code and setup a virtualenv:
 
-    $ git clone git@github.com:ixc/<app_name>.git
-    $ cd <app_name>
+    $ git clone git@github.com:ixc/django-master-password.git
+    $ cd django-master-password
     $ virtualenv venv
     $ source venv/bin/activate
     (venv)$ pip install -r requirements.txt
