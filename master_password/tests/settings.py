@@ -2,6 +2,10 @@
 Test settings for ``master_password`` app.
 """
 
+AUTHENTICATION_BACKENDS = (
+    'master_password.auth.ModelBackend',
+)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
