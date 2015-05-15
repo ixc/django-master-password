@@ -79,9 +79,10 @@ class ModelBackend(MasterPasswordMixin, ModelBackend):
     Add master password authentication to ``ModelBackend``.
     """
 
-    def get_user_object(self, password=None, **kwargs):
+    def get_user_object(self, username=None, password=None, **kwargs):
         UserModel = get_user_model()
-        username = kwargs.get(UserModel.USERNAME_FIELD)
+        if username is None:
+            username = kwargs.get(UserModel.USERNAME_FIELD)
         try:
             user = UserModel._default_manager.get_by_natural_key(username)
             return user
