@@ -1,6 +1,5 @@
-[![Build Status](https://img.shields.io/travis/ixc/django-master-branch.svg)](https://travis-ci.org/ixc/django-master-password)
+[![Build Status](https://img.shields.io/travis/ixc/django-master-password.svg)](https://travis-ci.org/ixc/django-master-password)
 [![Coverage Status](https://img.shields.io/coveralls/ixc/django-master-password.svg)](https://coveralls.io/github/ixc/django-master-password)
-[![Downloads](https://img.shields.io/pypi/dm/django-master-password.svg)](https://pypi.python.org/pypi/django-master-password)
 [![Version](https://img.shields.io/pypi/v/django-master-password.svg)](https://pypi.python.org/pypi/django-master-password)
 
 # Overview
