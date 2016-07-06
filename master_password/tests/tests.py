@@ -84,4 +84,4 @@ class Management(WebTest):
             stdin.seek(0)
             call_command('make_password')
             self.assertIn(
-                'Hashed password: pbkdf2_sha256$20000$', stdout.getvalue())
+                'Hashed password: pbkdf2_sha256$', stdout.getvalue())

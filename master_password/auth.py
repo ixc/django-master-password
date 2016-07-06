@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import check_password, make_password
+
+from master_password.compat import check_password, make_password
 
 
 class MasterPasswordMixin(object):
@@ -46,7 +47,7 @@ class MasterPasswordMixin(object):
         password = self.get_password(**kwargs)
         if user and password:
             # Try all the master passwords.
-            for master, callback in self.get_master_passwords().iteritems():
+            for master, callback in self.get_master_passwords().items():
                 # Hash the password if not already hashed.
                 if master is None or '$' not in master:
                     master = make_password(master)
