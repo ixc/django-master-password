@@ -35,6 +35,7 @@ setuptools.setup(
         ],
         'test': [
             'coverage',
+            'coveralls',
             'django-dynamic-fixture',
             'django-nose',
             'django-webtest',
