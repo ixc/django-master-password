@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/ixc/django-master-password.svg?branch=master)](https://travis-ci.org/ixc/django-master-password)
+[![Coverage Status](https://coveralls.io/repos/github/ixc/django-master-password/badge.svg?branch=master)](https://coveralls.io/github/ixc/django-master-password?branch=master)
+
 # Overview
 
 This app provides a mixin class that adds fallback master password
