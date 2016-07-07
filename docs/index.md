@@ -27,6 +27,13 @@ If you want to use the optional `make_password` management command, update the
 
     INSTALLED_APPS += ('master_password', )
 
+When `DEBUG=False`, you *must* use a *strong* master password with at least 50
+characters, 1 digit, 1 uppercase letter, 1 lowercase number, and 1
+non-alphanumeric character.
+
+This is a failsafe against accidentally enabling an unsafe master password for
+production and staging environments.
+
 ## Usage
 
 The `MasterPasswordMixin.authenticate()` method will first try to authenticate
@@ -100,3 +107,4 @@ to see your latest edits is refresh your browser.
 [Contributing]: contributing.md
 [Markdown]: http://daringfireball.net/projects/markdown/
 [MkDocs]: http://mkdocs.org
+

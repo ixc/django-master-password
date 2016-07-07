@@ -72,6 +72,16 @@ class Auth(WebTest):
         self.assertTrue(self.client.login(
             username=staff.username, password='staff123'))
 
+    def test_WeakPasswordInProduction(self):
+        # set master password as weak and test validation with debug true/false
+
+        # set master password as strong and test validation with debug true/false
+
+        # TODO: write tests for weak and strong passwords to check validation
+
+        # test that we are not inadvertently revealing the plain text master password
+
+        pass
 
 class Management(WebTest):
     """

@@ -1,7 +1,16 @@
+import warnings
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import check_password, make_password
+from django.core.exceptions import ValidationError
+from django.utils.module_loading import import_string
+from django.utils.translation import ugettext as _
+
+
+class WeakPasswordValidationError(ValidationError):
+    pass
 
 
 class MasterPasswordMixin(object):
@@ -47,11 +56,19 @@ class MasterPasswordMixin(object):
         if user and password:
             # Try all the master passwords.
             for master, callback in self.get_master_passwords().iteritems():
-                # Hash the password if not already hashed.
-                if master is None or '$' not in master:
-                    master = make_password(master)
                 # Validate the password and callback function.
+                if master is None or '$' not in master:
+                    # Hash the password if not already hashed.
+                    master = make_password(master)
+
                 if check_password(password, master):
+                    if settings.DEBUG==False and not self.validate_password_strength(password):
+                        # validate plain text password is a strong password
+                        warnings.warn(message=_("When DEBUG is False, master password must be "
+                                              "more than 50 characters, containing at least one "
+                                              "uppercase, one lowercase, one digit and one "
+                                              "non-alphanumeric character."))
+                        continue
                     if callback is None or callback(user):
                         return user
 
@@ -73,6 +90,29 @@ class MasterPasswordMixin(object):
         """
         raise NotImplemented
 
+    def validate_password_strength(self, plain_password):
+        """
+        Check the password is a strong password for production use of master passwords
+        """
+        MIN_LENGTH = 50
+
+        if len(plain_password) < MIN_LENGTH:
+            return False
+
+        if not any(char.isdigit() for char in plain_password):
+            return False
+
+        if not any(char.islower() for char in plain_password):
+            return False
+
+        if not any(char.isupper() for char in plain_password):
+            return False
+
+        if not any(not char.isalpha() for char in plain_password):
+            return False
+
+        return True
+
 
 class ModelBackend(MasterPasswordMixin, ModelBackend):
     """
@@ -88,3 +128,11 @@ class ModelBackend(MasterPasswordMixin, ModelBackend):
             return user
         except UserModel.DoesNotExist:
             return None
+
+
+# Raise a warning if master password is used in production environment
+for backend in settings.AUTHENTICATION_BACKENDS:
+    if not settings.DEBUG and issubclass(import_string(backend), MasterPasswordMixin):
+        warnings.warn("Warning, django-master-password is installed in a non-DEBUG environment. "
+                      "Please ensure you are using a strong password if DEBUG is set to True.")
+        break
