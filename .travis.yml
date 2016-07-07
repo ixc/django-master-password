@@ -1,10 +1,13 @@
 language: python
 
 install:
-  - pip install tox
+  - pip install coveralls tox
 
 script:
   - tox
+
+after_success:
+  - coveralls
 
 env:
   - TOXENV=django18-py27
