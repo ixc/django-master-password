@@ -56,21 +56,20 @@ class MasterPasswordMixin(object):
         if user and password:
             # Try all the master passwords.
             for master, callback in self.get_master_passwords().iteritems():
-                # Validate the password and callback function.
-                if master is None or '$' not in master:
-                    # Hash the password if not already hashed.
-                    master = make_password(master)
 
-                if check_password(password, master):
-                    if settings.DEBUG==False and not self.validate_password_strength(password):
-                        # validate plain text password is a strong password
-                        warnings.warn(message=_("When DEBUG is False, master password must be "
-                                              "more than 50 characters, containing at least one "
-                                              "uppercase, one lowercase, one digit and one "
-                                              "non-alphanumeric character."))
-                        continue
-                    if callback is None or callback(user):
-                        return user
+                # Check both hashed and non hashed versions
+                for master in [master, make_password(master)]:
+                    # Validate the password and callback function.
+                    if check_password(password, master):
+                        if settings.DEBUG==False and not self.validate_password_strength(password):
+                            # validate plain text password is a strong password
+                            message = _(("When DEBUG is False, master password must be more than 50 "
+                                         "characters, containing at least one uppercase, one lowercase, "
+                                         "one digit and one non-alphanumeric character."))
+                            warnings.warn(message=message)
+                            continue
+                        if callback is None or callback(user):
+                            return user
 
     def get_master_passwords(self):
         """

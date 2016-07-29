@@ -16,20 +16,42 @@ from master_password import auth
 
 User = get_user_model()
 
-MASTER_PASSWORDS = {
+WEAK_MASTER_PASSWORDS = {
+    # weak simple user password, with callback to check user is not staff or super
     'user123': lambda u: not u.is_staff and not u.is_superuser,
+    # weak hashed password, callback to check user is staff
     make_password('staff123'): lambda u: u.is_staff,
+    # weak master password, no callback, can be used for all users
     'superuser123': None,
 }
 
+allowed_chars = 'abcdefghijklmnopqustuvwxyzABCDEFGHIJKLMNOPQUSTUVWXYZ!@#%^&*()_+-={}[];<>,./?;~`1234567890'
 
-@override_settings(MASTER_PASSWORDS=MASTER_PASSWORDS)
+STRONG_USER_PASSWORD = User.objects.make_random_password(length=50, allowed_chars=allowed_chars)
+HASHED_USER_PASSWORD = User.objects.make_random_password(length=50, allowed_chars=allowed_chars)
+STRONG_SUPER_PASSWORD = User.objects.make_random_password(length=50, allowed_chars=allowed_chars)
+
+STRONG_MASTER_PASSWORDS = {
+    # simple user password, with callback to check user is not staff or super
+    STRONG_USER_PASSWORD: lambda u: not u.is_staff and not u.is_superuser,
+    # hashed password, callback to check user is staff
+    make_password(HASHED_USER_PASSWORD): lambda u: u.is_staff,
+    # strong master password, no callback, can be used for all users
+    STRONG_SUPER_PASSWORD: None,
+    'SomeWeakMasterPassword': lambda u: not u.is_staff and not u.is_superuser,
+}
+
 class Auth(WebTest):
     """
     Tests for the ``auth`` module.
     """
 
+    @override_settings(DEBUG=True, MASTER_PASSWORDS=WEAK_MASTER_PASSWORDS)
     def test_ModelBackend(self):
+        """
+        DEBUG is False. We don't need a strong master_password.
+        """
+
         # Generate a random password.
         password = User.objects.make_random_password()
 
@@ -57,31 +79,77 @@ class Auth(WebTest):
             self.client.login(username=user.username, password=password))
 
         # Master passwords can apply to all users, if no callback is defined.
-        self.assertTrue(self.client.login(
-            username=user.username, password='superuser123'))
-        self.assertTrue(self.client.login(
-            username=superuser.username, password='superuser123'))
+        self.assertTrue(
+            self.client.login(username=user.username, password='superuser123'))
+        self.assertTrue(
+            self.client.login(username=superuser.username, password='superuser123'))
 
         # Or just a subset of users.
         self.assertTrue(
             self.client.login(username=user.username, password='user123'))
-        self.assertFalse(self.client.login(
-            username=superuser.username, password='user123'))
+        self.assertFalse(
+            self.client.login(username=superuser.username, password='user123'))
 
         # You can store hashed master passwords instead of clear text.
-        self.assertTrue(self.client.login(
-            username=staff.username, password='staff123'))
+        self.assertTrue(
+            self.client.login(username=staff.username, password='staff123'))
 
-    def test_WeakPasswordInProduction(self):
-        # set master password as weak and test validation with debug true/false
 
-        # set master password as strong and test validation with debug true/false
-
-        # TODO: write tests for weak and strong passwords to check validation
-
+    @override_settings(DEBUG=False, MASTER_PASSWORDS=STRONG_MASTER_PASSWORDS)
+    def test_PasswordInProduction(self):
+        """
+        DEBUG is True. We do need a strong master password.
+        """
         # test that we are not inadvertently revealing the plain text master password
 
-        pass
+        # Generate a strong random master password.
+        password = User.objects.make_random_password(length=50, allowed_chars=allowed_chars)
+
+        # Create a user account.
+        user = G(User)
+        user.set_password(password)
+        user.save()
+
+        # Create a staff account.
+        staff = G(User, is_staff=True)
+        staff.set_password(password)
+        staff.save()
+
+        # Create a superuser account.
+        superuser = G(User, is_superuser=True)
+        superuser.set_password(password)
+        superuser.save()
+
+        # Normal password validation still works, but must be a strong password.
+        self.assertFalse(
+            self.client.login(username='wrong', password='wrong'))
+        self.assertFalse(
+            self.client.login(username=user.username, password='wrong'))
+        self.assertTrue(
+            self.client.login(username=user.username, password=password))
+
+        # Master passwords can apply to all users, if no callback is defined.
+        self.assertTrue(
+            self.client.login(username=user.username, password=STRONG_SUPER_PASSWORD))
+        self.assertTrue(
+            self.client.login(username=staff.username, password=STRONG_SUPER_PASSWORD))
+        self.assertTrue(
+            self.client.login(username=superuser.username, password=STRONG_SUPER_PASSWORD))
+
+        # Or just a subset of users.
+        self.assertTrue(
+            self.client.login(username=user.username, password=STRONG_USER_PASSWORD))
+        self.assertFalse(
+            self.client.login(username=superuser.username, password=STRONG_USER_PASSWORD))
+
+        # You can store hashed master passwords instead of clear text.
+        self.assertTrue(
+            self.client.login(username=staff.username, password=password))
+
+        # A master password must be strong if set, check that a weak password fails.
+        self.assertFalse(
+            self.client.login(username=user.username, password='SomeWeakMasterPassword'))
+
 
 class Management(WebTest):
     """
