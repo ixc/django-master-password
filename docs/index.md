@@ -27,13 +27,6 @@ If you want to use the optional `make_password` management command, update the
 
     INSTALLED_APPS += ('master_password', )
 
-When `DEBUG=False`, you *must* use a *strong* master password with at least 50
-characters, 1 digit, 1 uppercase letter, 1 lowercase number, and 1
-non-alphanumeric character.
-
-This is a failsafe against accidentally enabling an unsafe master password for
-production and staging environments.
-
 ## Usage
 
 The `MasterPasswordMixin.authenticate()` method will first try to authenticate
@@ -57,7 +50,7 @@ or superuser accounts, and another that can be used for any account:
 
 The use of clear text master passwords is intended as a convenience during
 development. If you want to enable master password authentication for staging
-or production, you should used a hashed password:
+or production, you should use a hashed password:
 
     MASTER_PASSWORDS = {
         'pbkdf2_sha256$'
@@ -66,7 +59,7 @@ or production, you should used a hashed password:
         'euTmHbJ9sdHirlsM2MvUjHQPDJ6CZdu02gYrxY3aAbI=': None,
     }
 
-You can generate a hashed password locally in your development environment:
+You can generate a hashed password in Python:
 
     >>> from django.contrib.auth.models import make_password
     >>> print make_password('password123')
@@ -74,9 +67,16 @@ You can generate a hashed password locally in your development environment:
 
 Or use the `make_password` management command as a shortcut:
 
-    (venv)$ ./manage.py make_password
+    (venv)$ python manage.py make_password
     Password:
     Hashed password: pbkdf2_sha256$20000$kGdCcfmJtsUY$euTmHbJ9sdHirlsM2MvUjHQPDJ6CZdu02gYrxY3aAbI=
+
+When `DEBUG=False`, you *must* use a *strong* master password with at least 50
+characters, 1 digit, 1 uppercase letter, 1 lowercase number, and 1
+non-alphanumeric character, and it *must* be a hashed password.
+
+This is a failsafe against accidentally enabling a weak master password for
+production and staging environments.
 
 ## Customising
 
