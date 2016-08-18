@@ -92,15 +92,14 @@ class Auth(WebTest):
             self.assertTrue(self.client.login(
                 username=user.username, password='hashed' + CHARS))
 
-    @override_settings(DEBUG=False)
-    def test_production_warning(self):
-        # See: https://docs.python.org/3/library/warnings.html#testing-warnings
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
-            production_warning()
-            # Verify some things
-            self.assertEqual(len(w), 1)
-            self.assertEqual('%s' % w[-1].message, PRODUCTION_WARNING)
+    # @override_settings(DEBUG=False)
+    # def test_production_warning(self):
+    #     # See: https://docs.python.org/3/library/warnings.html#testing-warnings
+    #     with warnings.catch_warnings(record=True) as w:
+    #         warnings.simplefilter('always')
+    #         production_warning()
+    #         self.assertEqual(len(w), 1)
+    #         self.assertEqual('%s' % w[-1].message, PRODUCTION_WARNING)
 
 
 class Management(WebTest):
