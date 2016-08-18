@@ -1,3 +1,4 @@
+import string
 import warnings
 
 from django.conf import settings
@@ -56,19 +57,24 @@ class MasterPasswordMixin(object):
         if user and password:
             # Try all the master passwords.
             for master, callback in self.get_master_passwords().iteritems():
-
-                # Check both hashed and non hashed versions
-                for master in [master, make_password(master)]:
-                    # Validate the password and callback function.
+                if settings.DEBUG:
+                    # Check hashed and plain text versions.
+                    hashed = [master, make_password(master)]
+                else:
+                    # Check only hashed version.
+                    hashed = [master]
+                for master in hashed:
                     if check_password(password, master):
-                        if settings.DEBUG==False and not self.validate_password_strength(password):
-                            # validate plain text password is a strong password
-                            message = _(("When DEBUG is False, master password must be more than 50 "
-                                         "characters, containing at least one uppercase, one lowercase, "
-                                         "one digit and one non-alphanumeric character."))
-                            warnings.warn(message=message)
-                            continue
                         if callback is None or callback(user):
+                            # Master password *must* be strong in production.
+                            if not settings.DEBUG and \
+                                    not self.is_strong_password(password):
+                                warnings.warn(message=_(
+                                    'When DEBUG=False, master passwords must '
+                                    'be more than 50 characters, with at '
+                                    'least 1 uppercase, 1 lowercase, 1 digit '
+                                    'and 1 non-alphanumeric character.'))
+                                continue
                             return user
 
     def get_master_passwords(self):
@@ -87,30 +93,21 @@ class MasterPasswordMixin(object):
         """
         Return a user object for the given keyword arguments.
         """
-        raise NotImplemented
+        raise NotImplemented  # pragma: no cover
 
-    def validate_password_strength(self, plain_password):
+    def is_strong_password(self, password):
         """
-        Check the password is a strong password for production use of master passwords
+        Return `True` if the password is strong.
         """
-        MIN_LENGTH = 50
-
-        if len(plain_password) < MIN_LENGTH:
-            return False
-
-        if not any(char.isdigit() for char in plain_password):
-            return False
-
-        if not any(char.islower() for char in plain_password):
-            return False
-
-        if not any(char.isupper() for char in plain_password):
-            return False
-
-        if not any(not char.isalpha() for char in plain_password):
-            return False
-
-        return True
+        chars = set(password)
+        is_strong = all([
+            chars.intersection(string.digits),
+            chars.intersection(string.lowercase),
+            chars.intersection(string.uppercase),
+            len(chars) >= 50,
+            not password.isalnum(),
+        ])
+        return is_strong
 
 
 class ModelBackend(MasterPasswordMixin, ModelBackend):
@@ -129,9 +126,18 @@ class ModelBackend(MasterPasswordMixin, ModelBackend):
             return None
 
 
-# Raise a warning if master password is used in production environment
-for backend in settings.AUTHENTICATION_BACKENDS:
-    if not settings.DEBUG and issubclass(import_string(backend), MasterPasswordMixin):
-        warnings.warn("Warning, django-master-password is installed in a non-DEBUG environment. "
-                      "Please ensure you are using a strong password if DEBUG is set to True.")
-        break
+PRODUCTION_WARNING = (
+    'django-master-password is enabled and DEBUG=False. You *must* use '
+    'strong hashed master passwords.')
+
+
+def production_warning():
+    # Issue a warning if enabled in production.
+    for backend in settings.AUTHENTICATION_BACKENDS:
+        if not settings.DEBUG and issubclass(
+                import_string(backend), MasterPasswordMixin):
+            warnings.warn(PRODUCTION_WARNING)
+            break
+
+
+production_warning()
