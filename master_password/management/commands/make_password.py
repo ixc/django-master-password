@@ -1,16 +1,16 @@
 import getpass
 import sys
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from six.moves import input
 
 from master_password.compat import make_password
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = 'Creates a hashed version of a password.'
 
-    def handle_noargs(self, **options):
+    def handle(self, **options):
         # We can't redirect stdin to `getpass()` so we have to fallback to
         # `input()` to test. See: http://pymotw.com/2/getpass/
         prompt = getpass.getpass if sys.stdin.isatty() else input

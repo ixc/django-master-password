@@ -19,8 +19,8 @@ from master_password.auth import PRODUCTION_WARNING, production_warning
 
 User = get_user_model()
 
-CHARS = \
-    string.digits + string.lowercase + string.uppercase + string.punctuation
+CHARS = string.digits + string.ascii_lowercase + string.ascii_uppercase + \
+    string.punctuation
 
 MASTER_PASSWORDS = {
     'user123': lambda u: not u.is_staff and not u.is_superuser,

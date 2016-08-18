@@ -52,7 +52,7 @@ class MasterPasswordMixin(object):
         password = self.get_password(**kwargs)
         if user and password:
             # Try all the master passwords.
-            for master, callback in self.get_master_passwords().iteritems():
+            for master, callback in self.get_master_passwords().items():
                 if settings.DEBUG:
                     # Check hashed and plain text versions.
                     hashed = [master, make_password(master)]
@@ -98,8 +98,8 @@ class MasterPasswordMixin(object):
         chars = set(password)
         is_strong = all([
             chars.intersection(string.digits),
-            chars.intersection(string.lowercase),
-            chars.intersection(string.uppercase),
+            chars.intersection(string.ascii_lowercase),
+            chars.intersection(string.ascii_uppercase),
             len(chars) >= 50,
             not password.isalnum(),
         ])
