@@ -79,13 +79,13 @@ class Auth(WebTest):
 
         # When DEBUG is False, you *must* use strong, hashed master passwords.
         with override_settings(DEBUG=False):
-            # Weak, plain text.
+            # Weak, clear text.
             self.assertFalse(self.client.login(
                 username=user.username, password='superuser123'))
             # Weak, hashed.
             self.assertFalse(self.client.login(
                 username=staff.username, password='staff123'))
-            # Strong, plain text.
+            # Strong, clear text.
             self.assertFalse(self.client.login(
                 username=user.username, password='strong' + CHARS))
             # Strong, hashed.

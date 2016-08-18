@@ -53,7 +53,7 @@ class MasterPasswordMixin(object):
             # Try all the master passwords.
             for master, callback in self.get_master_passwords().items():
                 if settings.DEBUG:
-                    # Check hashed and plain text versions.
+                    # Check hashed and clear text versions.
                     hashed = [master, make_password(master)]
                 else:
                     # Check only hashed version.

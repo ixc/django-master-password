@@ -66,13 +66,13 @@ non-alphanumeric character:
 This is a failsafe against accidentally enabling an unsafe master password for
 production and staging environments.
 
-You can generate a hashed password locally in your development environment:
+You can generate a hashed password in Python:
 
     >>> from django.contrib.auth.models import make_password
     >>> print make_password('password123')
     pbkdf2_sha256$20000$kGdCcfmJtsUY$euTmHbJ9sdHirlsM2MvUjHQPDJ6CZdu02gYrxY3aAbI=
 
-Or use the `make_password` management command as a shortcut:
+Or use the `make_password` management command:
 
     (venv)$ ./manage.py make_password
     Password:
