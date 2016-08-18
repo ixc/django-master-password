@@ -52,8 +52,9 @@ or superuser accounts, and another that can be used for any account:
     }
 
 The use of clear text master passwords is intended as a convenience during
-development. If you want to enable master password authentication for staging
-or production, you should used a hashed password:
+development. When `DEBUG=False`, you *must* use a strong hashed password with
+at least 50 characters, 1 digit, 1 uppercase letter, 1 lowercase letter, and 1
+non-alphanumeric character:
 
     MASTER_PASSWORDS = {
         'pbkdf2_sha256$'
@@ -61,6 +62,9 @@ or production, you should used a hashed password:
         'kGdCcfmJtsUY$'
         'euTmHbJ9sdHirlsM2MvUjHQPDJ6CZdu02gYrxY3aAbI=': None,
     }
+
+This is a failsafe against accidentally enabling an unsafe master password for
+production and staging environments.
 
 You can generate a hashed password locally in your development environment:
 
