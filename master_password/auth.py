@@ -1,6 +1,11 @@
+import string
+import warnings
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.utils.module_loading import import_string
+from django.utils.translation import ugettext as _
 
 from master_password.compat import check_password, make_password
 
@@ -47,14 +52,26 @@ class MasterPasswordMixin(object):
         password = self.get_password(**kwargs)
         if user and password:
             # Try all the master passwords.
-            for master, callback in self.get_master_passwords().items():
-                # Hash the password if not already hashed.
-                if master is None or '$' not in master:
-                    master = make_password(master)
-                # Validate the password and callback function.
-                if check_password(password, master):
-                    if callback is None or callback(user):
-                        return user
+            for master, callback in self.get_master_passwords().iteritems():
+                if settings.DEBUG:
+                    # Check hashed and plain text versions.
+                    hashed = [master, make_password(master)]
+                else:
+                    # Check only hashed version.
+                    hashed = [master]
+                for master in hashed:
+                    if check_password(password, master):
+                        if callback is None or callback(user):
+                            # Master password *must* be strong in production.
+                            if not settings.DEBUG and \
+                                    not self.is_strong_password(password):
+                                warnings.warn(message=_(
+                                    'When DEBUG=False, master passwords must '
+                                    'be more than 50 characters, with at '
+                                    'least 1 uppercase, 1 lowercase, 1 digit '
+                                    'and 1 non-alphanumeric character.'))
+                                continue
+                            return user
 
     def get_master_passwords(self):
         """
@@ -72,7 +89,21 @@ class MasterPasswordMixin(object):
         """
         Return a user object for the given keyword arguments.
         """
-        raise NotImplemented
+        raise NotImplemented  # pragma: no cover
+
+    def is_strong_password(self, password):
+        """
+        Return `True` if the password is strong.
+        """
+        chars = set(password)
+        is_strong = all([
+            chars.intersection(string.digits),
+            chars.intersection(string.lowercase),
+            chars.intersection(string.uppercase),
+            len(chars) >= 50,
+            not password.isalnum(),
+        ])
+        return is_strong
 
 
 class ModelBackend(MasterPasswordMixin, ModelBackend):
@@ -89,3 +120,20 @@ class ModelBackend(MasterPasswordMixin, ModelBackend):
             return user
         except UserModel.DoesNotExist:
             return None
+
+
+PRODUCTION_WARNING = (
+    'django-master-password is enabled and DEBUG=False. You *must* use '
+    'strong hashed master passwords.')
+
+
+def production_warning():
+    # Issue a warning if enabled in production.
+    for backend in settings.AUTHENTICATION_BACKENDS:
+        if not settings.DEBUG and issubclass(
+                import_string(backend), MasterPasswordMixin):
+            warnings.warn(PRODUCTION_WARNING)
+            break
+
+
+production_warning()
