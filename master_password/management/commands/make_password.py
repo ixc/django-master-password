@@ -1,10 +1,9 @@
 import getpass
 import sys
 
+from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand
 from six.moves import input
-
-from master_password.compat import make_password
 
 
 class Command(BaseCommand):
