@@ -68,7 +68,7 @@ production and staging environments.
 
 You can generate a hashed password in Python:
 
-    >>> from django.contrib.auth.models import make_password
+    >>> from django.contrib.auth.hashers import make_password
     >>> print make_password('password123')
     pbkdf2_sha256$20000$kGdCcfmJtsUY$euTmHbJ9sdHirlsM2MvUjHQPDJ6CZdu02gYrxY3aAbI=
 
