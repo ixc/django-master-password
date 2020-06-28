@@ -21,9 +21,9 @@ Install with pip:
 
     $ pip install django-master-password
 
-Update the `AUTHENTICATION_BACKEND` setting:
+Update the `AUTHENTICATION_BACKENDS` setting:
 
-    AUTHENTICATION_BACKEND += ('master_password.auth.ModelBackend', )
+    AUTHENTICATION_BACKENDS += ('master_password.auth.ModelBackend', )
 
 If you want to use the optional `make_password` management command, update the
 `INSTALLED_APPS` setting as well:
