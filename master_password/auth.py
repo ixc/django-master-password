@@ -5,8 +5,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import check_password, make_password
-from django.utils.module_loading import import_string
 from django.utils.translation import ugettext as _
+
+try:
+    from django.utils.module_loading import import_string
+except ImportError:
+    from django.utils.module_loading import import_by_path as import_string
 
 
 class MasterPasswordMixin(object):
