@@ -7,11 +7,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils.translation import ugettext as _
 
-try:
-    from django.utils.module_loading import import_string
-except ImportError:
-    from django.utils.module_loading import import_by_path as import_string
-
 
 class MasterPasswordMixin(object):
     """
@@ -125,18 +120,8 @@ class ModelBackend(MasterPasswordMixin, ModelBackend):
             return None
 
 
-PRODUCTION_WARNING = (
-    'django-master-password is enabled and DEBUG=False. You *must* use '
-    'strong hashed master passwords.')
-
-
-def production_warning():
-    # Issue a warning if enabled in production.
-    for backend in settings.AUTHENTICATION_BACKENDS:
-        if not settings.DEBUG and issubclass(
-                import_string(backend), MasterPasswordMixin):
-            warnings.warn(PRODUCTION_WARNING)
-            break
-
-
-production_warning()
+if not settings.DEBUG:
+    warnings.warn(
+        'django-master-password is enabled and DEBUG=False. You *must* use '
+        'strong hashed master passwords.'
+    )
