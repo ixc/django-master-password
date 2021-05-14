@@ -98,7 +98,7 @@ class MasterPasswordMixin(object):
             chars.intersection(string.digits),
             chars.intersection(string.ascii_lowercase),
             chars.intersection(string.ascii_uppercase),
-            len(chars) >= 50,
+            len(password) >= 50,
             not password.isalnum(),
         ])
         return is_strong
