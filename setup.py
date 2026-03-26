@@ -46,5 +46,5 @@ setuptools.setup(
             'WebTest',
         ],
     },
-    setup_requires=['setuptools_scm'],
+    setup_requires=['setuptools_scm<10'],
 )
